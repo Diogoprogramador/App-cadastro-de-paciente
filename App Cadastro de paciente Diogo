@@ -1,0 +1,65 @@
+import PySimpleGUI as sg
+import csv
+from datetime import datetime
+
+# Função para salvar dados em um arquivo CSV
+def salvar_csv(dados):
+    with open('registros.csv', 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(dados)
+
+# Definindo layout da interface
+layout = [
+    [sg.Text('Nome do Paciente'), sg.InputText(key='-NOME-')],
+    [sg.Text('Gênero'), sg.Radio('Masculino', "RADIO1", default=True, key='-GENERO-M-'),
+     sg.Radio('Feminino', "RADIO1", key='-GENERO-F-'),
+     sg.Radio('Outro', "RADIO1", key='-GENERO-O-')],
+    [sg.Text('Data de Nascimento'), sg.InputText(key='-DATA-')],
+    [sg.Text('Documento'), sg.InputText(key='-DOCUMENTO-')],
+    [sg.Text('Nome do Médico'), sg.InputText(key='-NOME-MEDICO-')],
+    [sg.Text('CRM do Médico'), sg.InputText(key='-CRM-MEDICO-')],
+    [sg.Button('Cadastrar'), sg.Button('Limpar'), sg.Button('Ver Registros')],
+    [sg.Text('', size=(40, 1), key='-OUTPUT-')],
+]
+
+# Criando janela
+window = sg.Window('Cadastro de Pacientes - Hospital Diogo', layout)
+
+# Loop de eventos para capturar interações com a interface
+while True:
+    event, values = window.read()
+
+    if event == sg.WINDOW_CLOSED:
+        break
+
+    if event == 'Cadastrar':
+        nome = values['-NOME-']
+        genero = 'Masculino' if values['-GENERO-M-'] else 'Feminino' if values['-GENERO-F-'] else 'Outro'
+        data_nascimento = values['-DATA-']
+        documento = values['-DOCUMENTO-']
+        nome_medico = values['-NOME-MEDICO-']
+        crm_medico = values['-CRM-MEDICO-']
+
+        # Validar entrada e salvar dados no CSV
+        if nome and data_nascimento and documento and nome_medico and crm_medico:
+            dados = [nome, genero, data_nascimento, documento, nome_medico, crm_medico, datetime.now()]
+            salvar_csv(dados)
+            window['-OUTPUT-'].update(f'Paciente {nome} cadastrado com sucesso.')
+        else:
+            sg.popup_error('Por favor, preencha todos os campos.')
+
+    elif event == 'Limpar':
+        window['-NOME-'].update('')
+        window['-GENERO-M-'].update(True)
+        window['-GENERO-F-'].update(False)
+        window['-GENERO-O-'].update(False)
+        window['-DATA-'].update('')
+        window['-DOCUMENTO-'].update('')
+        window['-NOME-MEDICO-'].update('')
+        window['-CRM-MEDICO-'].update('')
+        window['-OUTPUT-'].update('')
+
+    elif event == 'Ver Registros':
+        sg.popup_scrolled(open('registros.csv').read(), title='Registros de Pacientes')
+
+window.close()
